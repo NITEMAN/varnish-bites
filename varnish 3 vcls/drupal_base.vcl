@@ -314,6 +314,11 @@ sub vcl_hash {
   # if (req.http.X-UA-Device) {
   #   hash_data(req.http.X-UA-Device);
   # }
+  # Example for caching different objects by protocol when using a loadbalancer which does SSL and flags the header for knowing about it.
+  # if (req.http.X-Forwarded-Proto &&
+  #     req.url !~ "(?i)\.(png|gif|jpeg|jpg|ico|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)$") {
+  #   hash_data(req.http.X-Forwarded-Proto);
+  # }
 
   /* Continue with built-in logic */
 }
