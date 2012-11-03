@@ -407,6 +407,7 @@ sub vcl_fetch {
 sub vcl_deliver {
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap this with an ACL
+  # Add wether the object is a cache hit or miss and the number of hits for the object.
   if (obj.hits > 0) {
     set resp.http.X-Cache = "HIT";
     set resp.http.X-Cache-Hits = obj.hits;
@@ -415,6 +416,7 @@ sub vcl_deliver {
     /* Show the results of cookie sanitization */
     set resp.http.X-Cookie = req.http.Cookie;
   }
+  # Add the Varnish server hostname
   set resp.http.X-Varnish-Server = server.hostname;
   # If we have setted a custom header with device family detected we can show it:
   # if (req.http.X-UA-Device) {
