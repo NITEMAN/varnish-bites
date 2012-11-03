@@ -86,7 +86,9 @@ sub vcl_recv {
   # See http://blog.tenya.me/blog/2011/12/14/varnish-http-authentication/
 
   /* 1st: Check for Varnish special requests */ 
-  # Purge logic. See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#http-purges
+  # Purge logic.
+  # See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#http-purges
+  # See https://www.varnish-software.com/static/book/Cache_invalidation.html#removing-a-single-object
   if (req.request == "PURGE") {
     if (!client.ip ~ purge_ban) {
       error 405 "Not allowed.";
@@ -113,6 +115,7 @@ sub vcl_recv {
   /* 2nd: Do some Varnish black magic such as custom client redirections */
   # Empty in simple configs.
   # call perm_redirections_recv;
+  # Here we can also enforce SSL when Varnish run behind some SSL termination point.
 
   /* 3rd: Time for backend choice */
   # Empty in simple configs.
@@ -310,7 +313,7 @@ sub vcl_hash {
 
   /* Custom header hashing */
   # Empty in simple configs.
-  # Example for caching differents objects by device previously detected:
+  # Example for caching differents object versions by device previously detected (when static content could also vary):
   # if (req.http.X-UA-Device) {
   #   hash_data(req.http.X-UA-Device);
   # }
@@ -335,7 +338,9 @@ sub vcl_hash {
 # vcl_hit: Called after a cache lookup if the requested document was found in the cache.
 sub vcl_hit {
   /* Check for Varnish special requests */ 
-  # Purge logic. See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#http-purges
+  # Purge logic.
+  # See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#http-purges
+  # See https://www.varnish-software.com/static/book/Cache_invalidation.html#removing-a-single-object
   if (req.request == "PURGE") {
     purge;
     error 200 "Purged.";
@@ -351,7 +356,9 @@ sub vcl_hit {
 # Its purpose is to decide whether or not to attempt to retrieve the document from the backend, and which backend to use.
 sub vcl_miss {
   /* Check for Varnish special requests */ 
-  # Purge logic. See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#http-purges
+  # Purge logic.
+  # See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#http-purges
+  # See https://www.varnish-software.com/static/book/Cache_invalidation.html#removing-a-single-object
   if (req.request == "PURGE") {
     purge;
     error 200 "Purged.";
