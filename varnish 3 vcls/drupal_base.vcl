@@ -317,7 +317,8 @@ sub vcl_hash {
   # if (req.http.X-UA-Device) {
   #   hash_data(req.http.X-UA-Device);
   # }
-  # Example for caching different objects by protocol when using a loadbalancer which does SSL and flags the header for knowing about it.
+  # Example for caching diferent object versions by X-Forwarded-Proto, trying to be smart about what kind of request
+  # could generate diffetent responses.
   # if (req.http.X-Forwarded-Proto &&
   #     req.url !~ "(?i)\.(png|gif|jpeg|jpg|ico|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)$") {
   #   hash_data(req.http.X-Forwarded-Proto);
@@ -444,6 +445,10 @@ sub vcl_deliver {
   # If we have setted a custom header with device family detected we can show it:
   # if (req.http.X-UA-Device) {
   #   set resp.http.X-UA-Device = req.http.X-UA-Device;
+  # }
+  # If we have recived a custom header with the protocol in the request we can show it:
+  # if (req.http.X-Forward-Proto) {
+  #   set resp.http.X-Forward-Proto = req.http.X-Forward-Proto;
   # }
 
   /* Vary header manipulation */
