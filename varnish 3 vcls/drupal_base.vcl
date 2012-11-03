@@ -82,7 +82,8 @@ sub vcl_recv {
   # return (pass);
   # We can also return here a 200 Ok for network performance benchmarking.
   # error 200 "Ok";
-  # Finally we can perform basic HTTP authentification here by example. See http://blog.tenya.me/blog/2011/12/14/varnish-http-authentication/
+  # Finally we can perform basic HTTP authentification here by example.
+  # See http://blog.tenya.me/blog/2011/12/14/varnish-http-authentication/
 
   /* 1st: Check for Varnish special requests */ 
   # Purge logic. See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#http-purges
@@ -103,7 +104,9 @@ sub vcl_recv {
   }
   # Custom response implementation example in order to check that Varnish is working properly.
   # This is usefull for automatic monitoring with monit or when Varnish is behind another proxies like HAProxy.
-  if (req.http.host == "monitor.server.health" && client.ip ~ allowed_monitors && (req.request == "OPTIONS" || req.request == "GET")) {
+  if (req.http.host == "monitor.server.health" && 
+      client.ip ~ allowed_monitors && 
+      (req.request == "OPTIONS" || req.request == "GET")) {
     error 200 "Ok";
   }
 
@@ -198,7 +201,8 @@ sub vcl_recv {
   }
 
   /* 10th: Deal with compression and the Accept-Encoding header */
-  # Althought Varnish 3 handles gziped content itself by default, just to be sure we want to remove Accept-Encoding for some compressed formats.
+  # Althought Varnish 3 handles gziped content itself by default, just to be sure we want to 
+  # remove Accept-Encoding for some compressed formats.
   # See https://www.varnish-cache.org/docs/3.0/phk/gzip.html#what-does-http-gzip-support-do
   # See https://www.varnish-cache.org/docs/3.0/tutorial/compression.html
   # See https://www.varnish-cache.org/docs/3.0/reference/varnishd.html?highlight=http_gzip_support
@@ -215,7 +219,9 @@ sub vcl_recv {
   # We could add here a custom header grouping User-agent families.
 
   /* 12th: Cookie removal */
-  # Always cache the following static file types for all users. Use with care if we control certain downloads depending on cookies
+  # Always cache the following static file types for all users. 
+  # Use with care if we control certain downloads depending on cookies. 
+  # Be carefull also if appending .htm[l] via Drupal's clean URLs.
   if (req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)(\?[a-z0-9]+)?$") {
       unset req.http.Cookie;
   }
@@ -245,7 +251,8 @@ sub vcl_recv {
   }
 
   /* 13th: Session cookie & special cookies bypass caching stage */
-  # As we might want to cache some requests, hashed with its cookies, we don't simply pass when some cookies remain present at this point.
+  # As we might want to cache some requests, hashed with its cookies, 
+  # we don't simply pass when some cookies remain present at this point.
   # Instead we look for request that must be passed due to the cookie header.
   if (req.http.Cookie ~ "SESS" ||
       req.http.Cookie ~ "NO_CACHE" ||
@@ -265,14 +272,17 @@ sub vcl_recv {
 }
 
 # vcl_pipe: Called upon entering pipe mode.
-# In this mode, the request is passed on to the backend, and any further data from either client or backend is passed on unaltered until either end closes the connection.
+# In this mode, the request is passed on to the backend, 
+# and any further data from either client or backend is passed on unaltered until either end closes the connection.
 sub vcl_pipe {
   /* Prevent connection re-using for piped requests */
   # Note that only the first request to the backend will have X-Forwarded-For set.
-  # As we use X-Forwarded-For and want to have it set for all requests, we have to make sure connection won't be reused after the request.
+  # As we use X-Forwarded-For and want to have it set for all requests, 
+  # we have to make sure connection won't be reused after the request.
   # It is not set by default as it might break some broken web applications, like IIS with NTLM authentication.
   # See https://www.varnish-cache.org/trac/wiki/VCLExamplePipe
-  # TO-DO: make sure this is compatible with websockets piping, reference https://www.varnish-cache.org/docs/3.0/tutorial/websockets.html
+  # TO-DO: make sure this is compatible with websockets piping,
+  # reference https://www.varnish-cache.org/docs/3.0/tutorial/websockets.html
   set bereq.http.connection = "close";
 
   /* Bypass built-in logic */
@@ -280,7 +290,8 @@ sub vcl_pipe {
 }
 
 # vcl_pass: Called upon entering pass mode. 
-# In this mode, the request is passed on to the backend, and the backend's response is passed on to the client, but is not entered into the cache.
+# In this mode, the request is passed on to the backend, and the backend's response is passed on to the client, 
+# but is not entered into the cache.
 # Subsequent requests submitted over the same client connection are handled normally.
 # sub vcl_pass {
 #     return (pass);
@@ -484,7 +495,8 @@ sub vcl_error {
   }
 
   /* Error page & refresh / redirections */
-  # We have plenty of choices when we have to serve an error to the client, from the default error page to javascript black magic or plain redirections.
+  # We have plenty of choices when we have to serve an error to the client, 
+  # from the default error page to javascript black magic or plain redirections.
   # Adding some external statistic javascript to track failures served to clients is strongly suggest.
   # We can't use external resources on synthetic content, everything must be inlined.
   # If we need to include images we can embed them in base64 encoding.
