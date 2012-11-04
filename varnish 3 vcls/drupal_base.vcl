@@ -381,7 +381,7 @@ sub vcl_fetch {
   # See http://drupal.org/node/1248010
   # See http://drupal.org/node/310656
   if (beresp.status == 307 &&
-      /* TO-DO verify that this work better than 'req.url ~ "imagecache"' */
+      /* TO-DO: verify that this work better than 'req.url ~ "imagecache"' */
       beresp.http.Location == req.url &&
       beresp.ttl > 5s) {
     set beresp.ttl = 5s;
@@ -396,6 +396,7 @@ sub vcl_fetch {
   # See https://www.varnish-cache.org/docs/3.0/tutorial/handling_misbehaving_servers.html#saint-mode
   if (beresp.status == 500) {
     set beresp.saintmode = 20s;
+    # TO-DO: consider not restarting POST requests as seen on https://www.varnish-cache.org/trac/wiki/VCLExampleSaintMode
     return(restart);
   }
 
