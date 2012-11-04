@@ -404,10 +404,30 @@ sub vcl_fetch {
     unset beresp.http.set-cookie;
   }
 
-  /* Response headers manipulation */
-  # Empty in simple configs.
-  # By example we can add the name of the backend that has processed the request:
+  /* Debugging headers */
+  # Please consider the risks of showing publicly this information, we can wrap this with an ACL
+  # We can add the name of the backend that has processed the request:
   # set beresp.http.X-Backend = beresp.backend.name;
+  # We can also add headers informing whether the object is cacheable or not and why.
+  # https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Varnish3.0
+  if (beresp.ttl <= 0s) {
+    /* Varnish determined the object was not cacheable */
+    set beresp.http.X-Cacheable = "NO:Not Cacheable";
+  } elsif (req.http.Cookie ~ "(SESS|NO_CACHE|OATMEAL|CHOCOLATECHIP)") {
+    /* We don't wish to cache content for logged in users or with certain cookies. Related with our 9th stage on vcl_recv */
+    set beresp.http.X-Cacheable = "NO:Cookies";
+    # return(hit_for_pass);
+  } elsif (beresp.http.Cache-Control ~ "private") {
+    /* We are respecting the Cache-Control=private header from the backend */
+    set beresp.http.X-Cacheable = "NO:Cache-Control=private";
+    # return(hit_for_pass);
+  } else {
+    /* Varnish determined the object was cacheable */
+      set beresp.http.X-Cacheable = "YES";
+  }
+
+  /* Further header manipulation */
+  # Empty in simple configs.
   # We can also unset some headers to prevent information disclosure and save some cache space
   # unset beresp.http.Server;
   # unset beresp.http.X-Powered-By;
@@ -431,7 +451,8 @@ sub vcl_fetch {
 sub vcl_deliver {
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap this with an ACL
-  # Add wether the object is a cache hit or miss and the number of hits for the object.
+  # Add whether the object is a cache hit or miss and the number of hits for the object.
+  # https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Addingaheaderindicatinghitmiss
   if (obj.hits > 0) {
     set resp.http.X-Cache = "HIT";
     set resp.http.X-Cache-Hits = obj.hits;
