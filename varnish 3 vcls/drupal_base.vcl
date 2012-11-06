@@ -405,10 +405,31 @@ sub vcl_fetch {
     unset beresp.http.set-cookie;
   }
 
+  /* Gzip response */
+  # Empty in simple configs
+  # Use Varnish to Gzip respone, if suitable, before storing it on cache
+  # See https://www.varnish-cache.org/docs/3.0/tutorial/compression.html
+  # See https://www.varnish-cache.org/docs/3.0/phk/gzip.html
+  # if (! beresp.http.Content-Encoding &&
+  #     (beresp.http.content-type ~ "text" ||
+  #      beresp.http.content-type ~ "application/x-javascript" ||
+  #      beresp.http.content-type ~ "application/javascript" ||
+  #      beresp.http.content-type ~ "application/rss+xml" ||
+  #      beresp.http.content-type ~ "Application/JSON")
+  # ) {
+  #   set beresp.do_gzip = true;
+  # }
+
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap this with an ACL
   # We can add the name of the backend that has processed the request:
   # set beresp.http.X-Backend = beresp.backend.name;
+  # We can use a header to tell if the object was gziped by Varnish
+  # if (beresp.do_gzip) {
+  #   set beresp.http.X-Varnish-Gizipped = "yes";
+  # } else {
+  #   set beresp.http.X-Varnish-Gizipped = "no";
+  # }
   # We can also add headers informing whether the object is cacheable or not and why.
   # https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Varnish3.0
   if (beresp.ttl <= 0s) {
