@@ -237,11 +237,11 @@ sub vcl_recv {
     /* Remove any spaces after ';' in header containing cookies */
     set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
     /* Prefix cookies we want to preserve with one space */
-    /* 'SESS[a-z0-9]+' is the regular expression matching a Drupal session cookie */
+    /* 'S{1,2}ESS[a-z0-9]+' is the regular expression matching a Drupal session cookie ({1,2} added for HTTPS support) */
     /* 'NO_CACHE' is usually set after a POST request to make sure issuing user see the results of his post */
     /* 'OATMEAL' & 'CHOCOLATECHIP' are special cookies used by Drupal's Bakery module to provide Single Sign On */
     /* Keep in mind we should add here any cookie that should reach the backend such as splahs avoiding cookies */
-    set req.http.Cookie = regsuball(req.http.Cookie, ";(SESS[a-z0-9]+|NO_CACHE|OATMEAL|CHOCOLATECHIP)=", "; \1=");
+    set req.http.Cookie = regsuball(req.http.Cookie, ";(S{1,2}ESS[a-z0-9]+|NO_CACHE|OATMEAL|CHOCOLATECHIP)=", "; \1=");
     /* Remove from the header any single Cookie not prefixed with a space until next ';' separator */
     set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
     /* Remove any '; ' at the start or the end of the header */
@@ -258,6 +258,7 @@ sub vcl_recv {
   # we don't simply pass when some cookies remain present at this point.
   # Instead we look for request that must be passed due to the cookie header.
   if (req.http.Cookie ~ "SESS" ||
+      req.http.Cookie ~ "SSESS" ||
       req.http.Cookie ~ "NO_CACHE" ||
       req.http.Cookie ~ "OATMEAL" ||
       req.http.Cookie ~ "CHOCOLATECHIP") {
@@ -441,7 +442,7 @@ sub vcl_fetch {
   if (beresp.ttl <= 0s) {
     /* Varnish determined the object was not cacheable */
     set beresp.http.X-Cacheable = "NO:Not Cacheable";
-  } elsif (req.http.Cookie ~ "(SESS|NO_CACHE|OATMEAL|CHOCOLATECHIP)") {
+  } elsif (req.http.Cookie ~ "(SESS|SSESS|NO_CACHE|OATMEAL|CHOCOLATECHIP)") {
     /* We don't wish to cache content for logged in users or with certain cookies. Related with our 9th stage on vcl_recv */
     set beresp.http.X-Cacheable = "NO:Cookies";
     # return(hit_for_pass);
