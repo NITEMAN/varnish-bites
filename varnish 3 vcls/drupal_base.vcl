@@ -418,6 +418,12 @@ sub vcl_fetch {
   #      beresp.http.content-type ~ "Application/JSON")
   # ) {
   #   set beresp.do_gzip = true;
+  #   if (beresp.http.Vary &&
+  #       ! beresp.http.Vary ~ "Accept-Encoding") {
+  #     set beresp.http.Vary = beresp.http.Vary + ",Accept-Encoding";
+  #   } else {
+  #     set beresp.http.Vary = "Accept-Encoding";
+  #   }
   # }
 
   /* Debugging headers */
