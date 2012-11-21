@@ -290,6 +290,7 @@ sub vcl_pipe {
   set bereq.http.connection = "close";
 
   /* Bypass built-in logic */
+  # We make sure no built-in logic is processed after ours returning at this point.
   return (pipe);
 }
 
@@ -326,6 +327,7 @@ sub vcl_hash {
   # }
 
   /* Continue with built-in logic */
+  # We want built-in logic to be processed after ours so we don't call return.
 }
 # sub vcl_hash {
 #     hash_data(req.url);
@@ -349,6 +351,7 @@ sub vcl_hit {
   }
 
   /* Continue with built-in logic */
+  # We want built-in logic to be processed after ours so we don't call return.
 }
 # sub vcl_hit {
 #     return (deliver);
@@ -367,6 +370,7 @@ sub vcl_miss {
   }
 
   /* Continue with built-in logic */
+  # We want built-in logic to be processed after ours so we don't call return.
 }
 # sub vcl_miss {
 #     return (fetch);
@@ -452,7 +456,7 @@ sub vcl_fetch {
     # return(hit_for_pass);
   } else {
     /* Varnish determined the object was cacheable */
-      set beresp.http.X-Cacheable = "YES";
+    set beresp.http.X-Cacheable = "YES";
   }
 
   /* Further header manipulation */
@@ -462,6 +466,7 @@ sub vcl_fetch {
   # unset beresp.http.X-Powered-By;
 
   /* Continue with built-in logic */
+  # We want built-in logic to be processed after ours so we don't call return.
 }
 # sub vcl_fetch {
 #     if (beresp.ttl <= 0s ||
@@ -522,6 +527,7 @@ sub vcl_deliver {
   # set resp.http.X-Answer = "42";
 
   /* Continue with built-in logic */
+  # We want built-in logic to be processed after ours so we don't call return.
 }
 # sub vcl_deliver {
 #     return (deliver);
@@ -589,6 +595,7 @@ sub vcl_error {
 "};
 
   /* Bypass built-in logic */
+  # We make sure no built-in logic is processed after ours returning at this point.
   return (deliver);
 }
 
