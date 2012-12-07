@@ -573,7 +573,7 @@ sub vcl_error {
   /* Error page & refresh / redirections */
   # We have plenty of choices when we have to serve an error to the client, 
   # from the default error page to javascript black magic or plain redirections.
-  # Adding some external statistic javascript to track failures served to clients is strongly suggest.
+  # Adding some external statistic javascript to track failures served to clients is strongly suggested.
   # We can't use external resources on synthetic content, everything must be inlined.
   # If we need to include images we can embed them in base64 encoding.
   # Here is the default error page for Varnish 3 (not so pretty)
