@@ -198,6 +198,7 @@ sub vcl_recv {
     set req.grace = 1h;
     /* Use anonymous, cached pages if all backends are down. */
     unset req.http.Cookie;
+    # TO-DO: Add sick marker
   } else {
     /* Allow the backend to serve up stale content if it is responding slowly. */
     set req.grace = 30s;
@@ -495,6 +496,8 @@ sub vcl_deliver {
     /* Show the results of cookie sanitization */
     set resp.http.X-Cookie = req.http.Cookie;
   }
+  # TO-DO: Add sick marker
+  # TO-DO: Add restart count
   # Add the Varnish server hostname
   set resp.http.X-Varnish-Server = server.hostname;
   # If we have setted a custom header with device family detected we can show it:
