@@ -505,8 +505,8 @@ sub vcl_deliver {
   #   set resp.http.X-UA-Device = req.http.X-UA-Device;
   # }
   # If we have recived a custom header with the protocol in the request we can show it:
-  # if (req.http.X-Forward-Proto) {
-  #   set resp.http.X-Forward-Proto = req.http.X-Forward-Proto;
+  # if (req.http.X-Forwarded-Proto) {
+  #   set resp.http.X-Forwarded-Proto = req.http.X-Forwarded-Proto;
   # }
 
   /* Vary header manipulation */
