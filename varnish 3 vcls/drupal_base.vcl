@@ -538,7 +538,8 @@ sub vcl_deliver {
 
 # vcl_error: Called when we hit an error, either explicitly or implicitly due to backend or internal errors.
 sub vcl_error {
-  /** Avoid DOS vulnerability CVE-2013-4484. See https://www.varnish-cache.org/lists/pipermail/varnish-announce/2013-October/000686.html.
+  /* Avoid DOS vulnerability CVE-2013-4484 */
+  # See https://www.varnish-cache.org/lists/pipermail/varnish-announce/2013-October/000686.html
   if (obj.status == 400 || obj.status == 413) {
     return(deliver);
   }
