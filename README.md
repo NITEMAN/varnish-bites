@@ -14,7 +14,7 @@ https://github.com/mattiasgeniar/varnish-3.0-configuration-templates
 
 Interesting posts/manuals/resources (in English)
 ------------------------------------------------
-TO-DO
+https://fourkitchens.atlassian.net/wiki/display/TECH/Configure+Varnish+3+for+Drupal+7
 
 Interesting post/manuals/resources (in Spanish)
 -----------------------------------------------
