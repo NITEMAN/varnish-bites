@@ -438,7 +438,7 @@ sub vcl_fetch {
   # set beresp.http.X-Backend = beresp.backend.name;
   # We can use a header to tell if the object was gziped by Varnish
   # if (beresp.do_gzip) {
-  #   set beresp.http.X-Varnish-Gizipped = "yes";
+  #   set beresp.http.X-Varnish-Gzipped = "yes";
   # } else {
   #   set beresp.http.X-Varnish-Gizipped = "no";
   # }
