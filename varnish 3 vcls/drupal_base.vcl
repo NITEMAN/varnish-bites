@@ -497,7 +497,10 @@ sub vcl_deliver {
     set resp.http.X-Cookie = req.http.Cookie;
   }
   # TO-DO: Add sick marker
-  # TO-DO: Add restart count
+  # Restart count
+  if ( req.restarts > 0) {
+    set resp.http.X-Restarts = req.restarts;
+  }
   # Add the Varnish server hostname
   set resp.http.X-Varnish-Server = server.hostname;
   # If we have setted a custom header with device family detected we can show it:
