@@ -552,7 +552,9 @@ sub vcl_error {
   # call perm_redirections_error;
 
   /* Try to restart request in case of failure */
-  if (obj.status == 503 && req.restarts < 5) {
+  # Note that max_restarts defaults to 4
+  # See https://www.varnish-cache.org/trac/wiki/VCLExampleRestarts
+  if (obj.status == 503 && req.restarts < 4) {
     set obj.http.X-Restarts = req.restarts;
     return(restart);
   }
