@@ -11,6 +11,8 @@ varnish 3 vcl
 Other interesting GitHub resources about Varnish
 ------------------------------------------------
 https://github.com/mattiasgeniar/varnish-3.0-configuration-templates
+https://github.com/cosimo/vlogdump
+https://github.com/fgsch/varnish3to4
 
 Interesting posts/manuals/resources (in English)
 ------------------------------------------------
