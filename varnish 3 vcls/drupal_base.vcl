@@ -421,6 +421,7 @@ sub vcl_fetch {
   #      beresp.http.content-type ~ "application/x-javascript" ||
   #      beresp.http.content-type ~ "application/javascript" ||
   #      beresp.http.content-type ~ "application/rss+xml" ||
+  #      beresp.http.content-type ~ "application/xml" ||
   #      beresp.http.content-type ~ "Application/JSON")
   # ) {
   #   set beresp.do_gzip = true;
