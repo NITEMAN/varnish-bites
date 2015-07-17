@@ -243,7 +243,9 @@ sub vcl_recv {
   # Always cache the following static file types for all users. 
   # Use with care if we control certain downloads depending on cookies. 
   # Be carefull also if appending .htm[l] via Drupal's clean URLs.
-  if (req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)(\?[a-z0-9]+)?$") {
+  if ( req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)(\?(itok=)?[a-z0-9_=\.\-]+)?$"
+    && req.url !~ "/system/storage/serve"
+  ) {
       unset req.http.Cookie;
   }
   # Remove all cookies that backend doesn't need to know about.
@@ -424,7 +426,7 @@ sub vcl_fetch {
   }
 
   /* Strip cookies from the following static file types for all users. Related with our 12th stage on vcl_recv */
-  if (req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)(\?[a-z0-9]+)?$") {
+  if (req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)(\?(itok=)?[a-z0-9_=\.\-]+)?$") {
     unset beresp.http.set-cookie;
   }
 
