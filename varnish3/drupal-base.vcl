@@ -435,23 +435,23 @@ sub vcl_fetch {
   # Use Varnish to Gzip respone, if suitable, before storing it on cache
   # See https://www.varnish-cache.org/docs/3.0/tutorial/compression.html
   # See https://www.varnish-cache.org/docs/3.0/phk/gzip.html
-  # if (! beresp.http.Content-Encoding &&
-  #     (beresp.http.content-type ~ "text" ||
-  #      beresp.http.content-type ~ "application/x-javascript" ||
-  #      beresp.http.content-type ~ "application/javascript" ||
-  #      beresp.http.content-type ~ "application/rss+xml" ||
-  #      beresp.http.content-type ~ "application/xml" ||
-  #      beresp.http.content-type ~ "Application/JSON")
-  # ) {
-  #   set beresp.do_gzip = true;
-  #   if ( beresp.http.Vary ) {
-  #     if ( ! beresp.http.Vary ~ "Accept-Encoding" ) {
-  #       set beresp.http.Vary = beresp.http.Vary + ",Accept-Encoding";
-  #     }
-  #   } else {
-  #     set beresp.http.Vary = "Accept-Encoding";
-  #   }
-  # }
+  if (! beresp.http.Content-Encoding &&
+      (beresp.http.content-type ~ "text" ||
+       beresp.http.content-type ~ "application/x-javascript" ||
+       beresp.http.content-type ~ "application/javascript" ||
+       beresp.http.content-type ~ "application/rss+xml" ||
+       beresp.http.content-type ~ "application/xml" ||
+       beresp.http.content-type ~ "Application/JSON")
+  ) {
+    set beresp.do_gzip = true;
+    if ( beresp.http.Vary ) {
+      if ( ! beresp.http.Vary ~ "Accept-Encoding" ) {
+        set beresp.http.Vary = beresp.http.Vary + ",Accept-Encoding";
+      }
+    } else {
+      set beresp.http.Vary = "Accept-Encoding";
+    }
+  }
 
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap this with an ACL
