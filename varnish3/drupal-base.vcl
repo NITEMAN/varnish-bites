@@ -119,9 +119,11 @@ sub vcl_recv {
   }
   # Custom response implementation example in order to check that Varnish is working properly.
   # This is usefull for automatic monitoring with monit or when Varnish is behind another proxies like HAProxy.
-  if (req.http.host == "monitor.server.health" && 
-      client.ip ~ allowed_monitors && 
-      (req.request == "OPTIONS" || req.request == "GET")) {
+  if ( ( req.http.host == "monitor.server.health"
+      || req.http.host == "health.varnish" )
+    && client.ip ~ allowed_monitors
+    && ( req.request == "OPTIONS" || req.request == "GET" )
+    ) {
     error 200 "Ok";
   }
 
