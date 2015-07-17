@@ -341,10 +341,10 @@ sub vcl_hash {
   # }
   # Example for caching diferent object versions by X-Forwarded-Proto, trying to be smart about what kind of request
   # could generate diffetent responses.
-  # if (req.http.X-Forwarded-Proto &&
-  #     req.url !~ "(?i)\.(png|gif|jpeg|jpg|ico|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)$") {
-  #   hash_data(req.http.X-Forwarded-Proto);
-  # }
+  if ( req.http.X-Forwarded-Proto
+    && req.url !~ "(?i)\.(png|gif|jpeg|jpg|ico|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|svg|pdf)(\?(itok=)?[a-z0-9_=\.\-]+)?$") {
+    hash_data(req.http.X-Forwarded-Proto);
+  }
 
   /* Continue with built-in logic */
   # We want built-in logic to be processed after ours so we don't call return.
