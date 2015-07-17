@@ -53,6 +53,9 @@ acl allowed_monitors {
   /* Simple access control list for allowing item purge for the self machine */
   "127.0.0.1"/32; // We can use'"localhost";' instead
 }
+acl own_proxys {
+  "127.0.0.1"/32; // We can use'"localhost";' instead
+}
 
 
 /* Custom routines */
@@ -131,12 +134,14 @@ sub vcl_recv {
   # Empty in simple configs.
 
   /* 4th: Set custom headers for backend like X-Forwarded-For (copied from built-in logic) */
-  if (req.restarts == 0) {
+  if ( req.restarts == 0 ) {
     /* See also vcl_pipe section */
-    if (req.http.x-forwarded-for) {
-      set req.http.X-Forwarded-For = req.http.X-Forwarded-For + ", " + client.ip;
-    } else {
-      set req.http.X-Forwarded-For = client.ip;
+    if ( ! client.ip ~ own_proxys ) {
+      if ( req.http.x-forwarded-for ) {
+        set req.http.X-Forwarded-For = req.http.X-Forwarded-For + ", " + client.ip;
+      } else {
+        set req.http.X-Forwarded-For = client.ip;
+      }
     }
   }
 
