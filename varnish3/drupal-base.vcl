@@ -1,7 +1,10 @@
 /* Varnish 3 example config for Drupal 7 / Pressflow 6 & 7 */
-# Loosely based on http://www.lullabot.com/sites/default/files/default_varnish3.vcl_.txt
-# Intended to be used both in simple production environments and with learning/teaching purposes.
+# Original source: https://github.com/NITEMAN/varnish-bites/varnish4/drupal-base.vcl
+# Copyright (c) 2015 Pedro González Serrano and individual contributors.
+# MIT License
 
+# Intended to be used both in simple production environments and with learning/teaching purposes.
+# Loosely based on http://www.lullabot.com/sites/default/files/default_varnish3.vcl_.txt
 
 /* Backend probes / healthchecks */
 # See https://www.varnish-cache.org/docs/3.0/reference/vcl.html#backend-probes
