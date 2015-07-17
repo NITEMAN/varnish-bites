@@ -10,7 +10,14 @@
 # See https://www.varnish-cache.org/docs/3.0/reference/vcl.html#backend-probes
 probe basic {
   /* Only test that backend's IP serves content for '/' */
-  .url = "/";
+  # This might be a too heavy probe
+  # .url = "/";
+  /* Only test that backend's IP has apache working */
+  # Nginx would fail this probe with a default config
+  .request =
+    "OPTIONS * HTTP/1.1"
+    "Host: *"
+    "Connection: close";
   .interval = 10s;
   .timeout = 2s;
   .window = 8;
