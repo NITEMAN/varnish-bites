@@ -654,10 +654,11 @@ sub vcl_backend_response {
   # shield a little the backend.
   # See http://drupal.org/node/1248010
   # See http://drupal.org/node/310656
-  if (beresp.status == 307 &&
-      #TODO# verify that this work better than 'bereq.url ~ "imagecache"'
-      beresp.http.Location == bereq.url &&
-      beresp.ttl > 5s) {
+  if ( beresp.status == 307
+       #TODO# verify that this work better than 'bereq.url ~ "imagecache"'
+    && beresp.http.Location == bereq.url
+    && beresp.ttl > 5s
+  ) {
     set beresp.ttl = 5s;
     set beresp.http.cache-control = "max-age=5";
   }
