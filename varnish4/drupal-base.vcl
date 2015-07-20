@@ -349,13 +349,24 @@ sub vcl_recv {
     return (pass);
   }
 
-  /* 14th: Bypass breakpoint 2 */
+  /* 14th: Announce ESI Support */
+  # Empty in simple configs.
+  # See https://www.varnish-cache.org/docs/4.0/users-guide/esi.html
+  # Note that ESI included requests inherits its parent's modified request, so
+  # depending on the case you will end playing with req.esi_level to know
+  # current depth.
+  # Send Surrogate-Capability headers
+  # See http://www.w3.org/TR/edge-arch
+  # Note that myproxyname is an identifier that should avoid collitions
+  # set req.http.Surrogate-Capability = "myproxyname=ESI/1.0";
+
+  /* 15th: Bypass breakpoint 2 */
   # Useful for debugging we can now pipe or pass the request to backend to
   # bypass cache.
   # return (pipe);
   # return (pass);
 
-  /* 15th: Bypass built-in logic */
+  /* 16th: Bypass built-in logic */
   # We make sure no built-in logic is processed after ours returning
   # inconditionally.
   return (hash);
@@ -681,6 +692,19 @@ sub vcl_backend_response {
   if (bereq.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|woff2|svg|pdf)(\?(itok=)?[a-z0-9_=\.\-]+)?$") {
     unset beresp.http.set-cookie;
   }
+
+  /* Process ESI responses */
+  # Empty in simple configs.
+  # See https://www.varnish-cache.org/docs/4.0/users-guide/esi.html
+  # Send Surrogate-Capability headers
+  # See http://www.w3.org/TR/edge-arch
+  # Note that myproxyname is an identifier that should avoid collitions
+  # Check for ESI acknowledgement and remove Surrogate-Control header
+  #TODO# Add support for Surrogate-Control Targetting
+  # if ( beresp.http.Surrogate-Control ~ "ESI/1.0" ) {
+  #   unset beresp.http.Surrogate-Control;
+  #   set beresp.do_esi = true;
+  # }
 
   /* Gzip response */
   # Empty in simple configs.
