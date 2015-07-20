@@ -293,6 +293,24 @@ sub vcl_recv {
   /* 11th: Another request manipulation */
   # Empty in simple configs.
   # We could add here a custom header grouping User-agent families.
+  # Generic URL manipulation.
+  # Remove Google Analytics added parameters, useless for our backends.
+  if ( req.url ~ "(\?|&)(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=" ) {
+    set req.url = regsuball(req.url, "&(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "");
+    set req.url = regsuball(req.url, "\?(utm_source|utm_medium|utm_campaign|utm_content|gclid|cx|ie|cof|siteurl)=([A-z0-9_\-\.%25]+)", "?");
+    set req.url = regsub(req.url, "\?&", "?");
+    set req.url = regsub(req.url, "\?$", "");
+  }
+  # Strip anchors, server doesn't need it.
+  if ( req.url ~ "\#" ) {
+    set req.url = regsub(req.url, "\#.*$", "");
+  }
+  # Strip a trailing ? if it exists
+  if ( req.url ~ "\?$" ) {
+    set req.url = regsub(req.url, "\?$", "");
+  }
+  # Normalize the querystring arguments
+  set req.url = std.querysort(req.url);
 
   /* 12th: Cookie removal */
   # Always cache the following static file types for all users. 
