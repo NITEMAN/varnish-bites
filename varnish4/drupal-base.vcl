@@ -423,9 +423,10 @@ sub vcl_hit {
 sub vcl_deliver {
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap this with an ACL
-  # Add whether the object is a cache hit or miss and the number of hits for the object.
-  # https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Addingaheaderindicatinghitmiss
-  if (obj.hits > 0) {
+  # In Varnish 4 the obj.hits counter behaviour has changed, so we use a
+  # different method: if X-Varnish contains only 1 id, we have a miss, if it
+  # contains more (and therefore a space), we have a hit.
+  if (resp.http.x-varnish ~ " ") {
     set resp.http.X-Cache = "HIT";
     set resp.http.X-Cache-Hits = obj.hits;
   } else {
@@ -433,6 +434,8 @@ sub vcl_deliver {
     /* Show the results of cookie sanitization */
     set resp.http.X-Cookie = req.http.Cookie;
   }
+  
+
   #TODO# Add sick marker
   # Restart count
   if ( req.restarts > 0) {
@@ -512,6 +515,13 @@ sub vcl_synth {
   if ( resp.status != 200) {
     set resp.http.Retry-After = "5";
   }
+
+  ## Example custom 403 error page.
+  #if (resp.status == 403) {
+  #  synthetic(std.fileread("/403.html"));
+  #  return(deliver);
+  #}
+  
   # Consider add some analytics stuff to trace accesses
   synthetic( {"<!DOCTYPE html>
 <html>
