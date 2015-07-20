@@ -756,6 +756,12 @@ sub vcl_backend_response {
   # } else {
   #   set beresp.http.X-Varnish-Gizipped = "no";
   # }
+  # We can do the same to tell if Varnish is streaming it:
+  # if ( beresp.do_stream ) {
+  #   set beresp.http.X-Varnish-Streaming = "yes";
+  # } else {
+  #   set beresp.http.X-Varnish-Streaming = "no";
+  # }
   # We can also add headers informing whether the object is cacheable or not and why:
   # SeeV3 https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Varnish3.0
   if ( beresp.ttl <= 0s ) {
