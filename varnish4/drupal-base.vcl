@@ -705,11 +705,11 @@ sub vcl_backend_response {
     /* We don't wish to cache content for logged in users or with certain cookies. */
     # Related with our 9th stage on vcl_recv
     set beresp.http.X-Cacheable = "NO:Cookies";
-    # return(hit_for_pass);
+    # set beresp.uncacheable = true;
   } elsif (beresp.http.Cache-Control ~ "private") {
     /* We are respecting the Cache-Control=private header from the backend */
     set beresp.http.X-Cacheable = "NO:Cache-Control=private";
-    # return(hit_for_pass);
+    # set beresp.uncacheable = true;
   } else {
     /* Varnish determined the object was cacheable */
     set beresp.http.X-Cacheable = "YES";
