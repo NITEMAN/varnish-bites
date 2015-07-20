@@ -97,13 +97,13 @@ acl allowed_monitors {
 # /* Example 301 client redirection removing "www" prefix from request */
 # sub perm_redirections_recv {
 #   if ( req.http.host ~ "^www.*$" ) {
-#     return(
+#     return (
 #       synth(751, "http://" + regsub(req.http.host, "^www\.", "") + req.url)
 #     );
 #   }
 # }
 # sub perm_redirections_synth {
-#   if (resp.status == 751) {
+#   if ( resp.status == 751 ) {
 #     /* Get new URL from the response */
 #     set resp.http.Location = resp.response;
 #     /* Set HTTP 301 for permanent redirect */
@@ -128,7 +128,7 @@ sub vcl_recv {
   # return (pipe);
   # return (pass);
   # We can also return here a 200 Ok for network performance benchmarking.
-  # return(synth(200, "Ok"));
+  # return (synth(200, "Ok"));
   # Finally we can perform basic HTTP authentification here, by example.
   # SeeV3 http://blog.tenya.me/blog/2011/12/14/varnish-http-authentication/
 
@@ -142,26 +142,26 @@ sub vcl_recv {
     && client.ip ~ allowed_monitors
     && ( req.method == "OPTIONS" || req.method == "GET" )
   ) {
-    return(synth(200, "Ban added"));
+    return (synth(200, "Ban added"));
   }
   # Purge logic
   # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#http-purging
   # SeeV3 https://www.varnish-software.com/static/book/Cache_invalidation.html#removing-a-single-object
   if ( req.method == "PURGE" ) {
-    if ( ! client.ip ~ purge_ban ) {
-      return(synth(405, "Not allowed."));
+    if ( client.ip !~ purge_ban ) {
+      return (synth(405, "Not allowed."));
     }
     return (purge);
   }
   # Ban logic
   # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#bans
   if ( req.method == "BAN" ) {
-    if ( ! client.ip ~ purge_ban ) {
-      return(synth(405, "Not allowed."));
+    if ( client.ip !~ purge_ban ) {
+      return (synth(405, "Not allowed."));
     }
     ban( "req.http.host == " + req.http.host +
       "&& req.url == " + req.url);
-    return(synth(200, "Ban added"));
+    return (synth(200, "Ban added"));
   }
 
   /* 2nd: Do some Varnish black magic such as custom client redirections */
@@ -195,7 +195,7 @@ sub vcl_recv {
   # return (pass);
 
   /* 6th: Decide if we should deal with a request (mostly from built-in logic) */
-  if (req.method == "PRI") {
+  if ( req.method == "PRI" ) {
     /* We do not support SPDY or HTTP/2.0 */
     return (synth(405));
   }
@@ -210,17 +210,19 @@ sub vcl_recv {
     /* Non-RFC2616 or CONNECT which is weird. */
     return (pipe);
   }
-  if (req.method != "GET" && req.method != "HEAD") {
+  if ( req.method != "GET"
+    && req.method != "HEAD"
+  ) {
     /* We only deal with GET and HEAD by default */
     return (pass);
   }
-  if (req.http.Authorization) {
+  if ( req.http.Authorization ) {
     /* Not cacheable by default */
     return (pass);
   }
   # Websocket support
   # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html
-  if (req.http.Upgrade ~ "(?i)websocket") {
+  if ( req.http.Upgrade ~ "(?i)websocket" ) {
     return (pipe);
   }
 
@@ -229,17 +231,17 @@ sub vcl_recv {
   # By example denial some URLs depending on client-ip, we'll need to define
   # corresponding ACL 'internal'.
   # if ( req.url ~ "^/(cron|install)\.php"
-  #   && ! client.ip ~ internal
+  #   && client.ip !~ internal
   # ) {
   #   # Have Varnish throw the error directly.
-  #   return(synth(403, "Forbidden."));
+  #   return (synth(403, "Forbidden."));
   #   # Use a custom error page that you've defined in Drupal at the path "404".
   #   # set req.url = "/403";
   # }
 
   /* 8th: Custom exceptions */
   # Host exception example:
-  # if (req.http.host == "ejemplo.exception.com") {
+  # if ( req.http.host == "ejemplo.exception.com" ) {
   #     return (pass);
   # }
   # Drupal exceptions, edit if we want to cache some AJAX/AHAH request.
@@ -257,10 +259,10 @@ sub vcl_recv {
     return (pass);
   }
   # Pipe these paths directly to backend for streaming.
-  if (req.url ~ "^/admin/content/backup_migrate/export") {
+  if ( req.url ~ "^/admin/content/backup_migrate/export" ) {
     return (pipe);
   }
-  if (req.url ~ "^/system/files") {
+  if ( req.url ~ "^/system/files" ) {
     return (pipe);
   }
 
@@ -280,7 +282,7 @@ sub vcl_recv {
   # See https://www.varnish-cache.org/docs/4.0/users-guide/compression.html
   # See https://www.varnish-cache.org/docs/4.0/reference/varnishd.html?highlight=http_gzip_support
   # See (for older configs) https://www.varnish-cache.org/trac/wiki/VCLExampleNormalizeAcceptEncoding
-  if (req.http.Accept-Encoding) {
+  if ( req.http.Accept-Encoding ) {
     if ( req.url ~ "(?i)\.(7z|avi|bz2|flv|gif|gz|jpe?g|mpe?g|mk[av]|mov|mp[34]|og[gm]|pdf|png|rar|swf|tar|tbz|tgz|woff2?|zip|xz)(\?.*)?$"
     ) {
       /* Already compressed formats, no sense trying to compress again */
@@ -297,13 +299,13 @@ sub vcl_recv {
   # Use with care if we control certain downloads depending on cookies. 
   # Be carefull also if appending .htm[l] via Drupal's clean URLs.
   if ( req.url ~ "(?i)\.(bz2|css|eot|gif|gz|html?|ico|jpe?g|js|mp3|ogg|otf|pdf|png|rar|svg|swf|tbz|tgz|ttf|woff2?|zip)(\?(itok=)?[a-z0-9_=\.\-]+)?$"
-    && ! req.url ~ "/system/storage/serve"
+    && req.url !~ "/system/storage/serve"
   ) {
       unset req.http.Cookie;
   }
   # Remove all cookies that backend doesn't need to know about.
   # See https://www.varnish-cache.org/trac/wiki/VCLExampleRemovingSomeCookies
-  if (req.http.Cookie) {
+  if ( req.http.Cookie ) {
     /* Warning: Not a pretty solution */
     # Prefix header containing cookies with ';'
     set req.http.Cookie = ";" + req.http.Cookie;
@@ -330,7 +332,7 @@ sub vcl_recv {
     # Remove any '; ' at the start or the end of the header.
     set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
     #If there are no remaining cookies, remove the cookie header.
-    if (req.http.Cookie == "") {
+    if ( req.http.Cookie == "" ) {
       unset req.http.Cookie;
     }
   }
@@ -379,7 +381,7 @@ sub vcl_recv {
 sub vcl_pipe {
   # Websocket support
   # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html
-  if (req.http.upgrade) {
+  if ( req.http.upgrade ) {
     set bereq.http.upgrade = req.http.upgrade;
   }
 }
@@ -410,7 +412,7 @@ sub vcl_hash {
   # As requests with same URL and host can produce diferent results when issued
   # with different cookies, we need to store items hashed with the associated
   # cookies. Note that cookies are already sanitized when we reach this point.
-  if (req.http.Cookie) {
+  if ( req.http.Cookie ) {
     /* Include cookie in cache hash */
     hash_data(req.http.Cookie);
   }
@@ -419,7 +421,7 @@ sub vcl_hash {
   # Empty in simple configs.
   # Example for caching differents object versions by device previously
   # detected (when static content could also vary):
-  # if (req.http.X-UA-Device) {
+  # if ( req.http.X-UA-Device ) {
   #   hash_data(req.http.X-UA-Device);
   # }
   # Example for caching diferent object versions by X-Forwarded-Proto, trying
@@ -454,14 +456,14 @@ sub vcl_hash {
 # the cache.
 # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-built-in-subs.html#vcl-hit
 sub vcl_hit {
-  if (obj.ttl >= 0s) {
+  if ( obj.ttl >= 0s ) {
     // A pure unadultered hit, deliver it
     return (deliver);
   }
   /* Allow varnish to serve up stale content if it is responding slowly */
   # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-grace.html
   # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
-  if (obj.ttl + 60s > 0s) {
+  if ( obj.ttl + 60s > 0s ) {
     // Object is in grace, deliver it
     // Automatically triggers a background fetch
     set req.http.grace = "normal";
@@ -506,7 +508,7 @@ sub vcl_deliver {
   # In Varnish 4 the obj.hits counter behaviour has changed (see bug 1492), so
   # we use a different method: if X-Varnish contains only 1 id, we have a miss,
   # if it contains more (and therefore a space), we have a hit.
-  if (resp.http.x-varnish ~ " ") {
+  if ( resp.http.x-varnish ~ " " ) {
     set resp.http.X-Cache = "HIT";
     # Since in Varnish 4 the behaviour of obj.hits changed, this might not be
     # accurate.
@@ -523,7 +525,7 @@ sub vcl_deliver {
   #TODO# Add sick marker
 
   # Restart count
-  if ( req.restarts > 0) {
+  if ( req.restarts > 0 ) {
     set resp.http.X-Restarts = req.restarts;
   }
 
@@ -531,12 +533,12 @@ sub vcl_deliver {
   set resp.http.X-Varnish-Server = server.hostname;
   # If we have setted a custom header with device's family detected we can show
   # it:
-  # if (req.http.X-UA-Device) {
+  # if ( req.http.X-UA-Device ) {
   #   set resp.http.X-UA-Device = req.http.X-UA-Device;
   # }
   # If we have recived a custom header indicating the protocol in the request we
   # can show it:
-  # if (req.http.X-Forwarded-Proto) {
+  # if ( req.http.X-Forwarded-Proto ) {
   #   set resp.http.X-Forwarded-Proto = req.http.X-Forwarded-Proto;
   # }
 
@@ -544,7 +546,7 @@ sub vcl_deliver {
   # Empty in simple configs.
   # By example, if we are storing & serving diferent objects depending on
   # User-Agent header we must set the correct Vary header:
-  # if (resp.http.Vary) {
+  # if ( resp.http.Vary ) {
   #   set resp.http.Vary = resp.http.Vary + ",User-Agent";
   # } else {
   #   set resp.http.Vary = "User-Agent";
@@ -583,8 +585,10 @@ sub vcl_synth {
   /* Try to restart request in case of failure */
   # Note that max_restarts defaults to 4
   # SeeV3 https://www.varnish-cache.org/trac/wiki/VCLExampleRestarts
-  if (resp.status == 503 && req.restarts < 4) {
-    return(restart);
+  if ( resp.status == 503
+    && req.restarts < 4
+  ) {
+    return (restart);
   }
 
   /* Set common headers for synthetic responses */
@@ -599,9 +603,9 @@ sub vcl_synth {
   # You should consider PROS/CONS of doing an include instead.
   # See https://www.varnish-cache.org/docs/4.0/reference/vmod_std.generated.html#func-fileread
   # Example custom 403 error page.
-  # if (resp.status == 403) {
+  # if ( resp.status == 403 ) {
   #   synthetic(std.fileread("/403.html"));
-  #   return(deliver);
+  #   return (deliver);
   # }
 
   /* Error page & refresh / redirections */
@@ -614,7 +618,7 @@ sub vcl_synth {
   # If we need to include images we can embed them in base64 encoding.
   # We're using error 200 for monitoring puposes which should not be retried
   # client side.
-  if ( resp.status != 200) {
+  if ( resp.status != 200 ) {
     set resp.http.Retry-After = "5";
   }
 
@@ -729,22 +733,22 @@ sub vcl_backend_response {
   # We can add the name of the backend that has processed the request:
   # set beresp.http.X-Backend = beresp.backend.name;
   # We can use a header to tell if the object was gziped by Varnish:
-  # if (beresp.do_gzip) {
+  # if ( beresp.do_gzip ) {
   #   set beresp.http.X-Varnish-Gzipped = "yes";
   # } else {
   #   set beresp.http.X-Varnish-Gizipped = "no";
   # }
   # We can also add headers informing whether the object is cacheable or not and why:
   # SeeV3 https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Varnish3.0
-  if (beresp.ttl <= 0s) {
+  if ( beresp.ttl <= 0s ) {
     /* Varnish determined the object was not cacheable */
     set beresp.http.X-Cacheable = "NO:Not Cacheable";
-  } elsif (bereq.http.Cookie ~ "(SESS|SSESS|NO_CACHE|OATMEAL|CHOCOLATECHIP)") {
+  } elsif ( bereq.http.Cookie ~ "(SESS|SSESS|NO_CACHE|OATMEAL|CHOCOLATECHIP)" ) {
     /* We don't wish to cache content for logged in users or with certain cookies. */
     # Related with our 9th stage on vcl_recv
     set beresp.http.X-Cacheable = "NO:Cookies";
     # set beresp.uncacheable = true;
-  } elsif (beresp.http.Cache-Control ~ "private") {
+  } elsif ( beresp.http.Cache-Control ~ "private" ) {
     /* We are respecting the Cache-Control=private header from the backend */
     set beresp.http.X-Cacheable = "NO:Cache-Control=private";
     # set beresp.uncacheable = true;
@@ -760,7 +764,7 @@ sub vcl_backend_response {
   # unset beresp.http.Server;
   # unset beresp.http.X-Powered-By;
   # Retry count.
-  if ( bereq.retries > 0) {
+  if ( bereq.retries > 0 ) {
     set beresp.http.X-Retries = bereq.retries;
   }
 
@@ -790,7 +794,7 @@ sub vcl_backend_error {
   /* Try to restart request in case of failure */
   #TODO# Confirm max_retries default value
   # SeeV3 https://www.varnish-cache.org/trac/wiki/VCLExampleRestarts
-  if (bereq.retries < 4) {
+  if ( bereq.retries < 4 ) {
     return (retry);
   }
 
@@ -798,7 +802,7 @@ sub vcl_backend_error {
   # Please consider the risks of showing publicly this information, we can wrap
   # this with an ACL.
   # Retry count
-  if ( bereq.retries > 0) {
+  if ( bereq.retries > 0 ) {
     set beresp.http.X-Retries = bereq.retries;
   }
 
