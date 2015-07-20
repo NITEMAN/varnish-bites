@@ -7,9 +7,9 @@ Contents
 -------------
 
 * varnish3 : varnish 3.x resources
-** drupal-base.vcl : A complete Varnish 3.x config for Drupal 7 / Pressflow 6 & 7 full of comments and suggestions.
+  * drupal-base.vcl : A complete Varnish 3.x config for Drupal 7 / Pressflow 6 & 7 full of comments and suggestions.
 * varnish4 : varnish 4.x resources
-** drupal-base.vcl : A complete Varnish 4.x config for Drupal 7 / Pressflow 6 & 7 full of comments and suggestions.
+  * drupal-base.vcl : A complete Varnish 4.x config for Drupal 7 / Pressflow 6 & 7 full of comments and suggestions.
 
 
 Other interesting GitHub resources about Varnish
