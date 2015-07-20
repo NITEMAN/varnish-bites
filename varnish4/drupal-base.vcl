@@ -509,7 +509,9 @@ sub vcl_synth {
   # Empty in simple configs. SeeV3 http://blog.tenya.me/blog/2011/12/14/varnish-http-authentication/
 
   /* Load synthetic responses from disk */
-  #TODO# Ensure that this is only done at boot time and we don't hit disk in-flight
+  # Note that files loaded this way are never re-readed (even after a reload).
+  # You should consider PROS/CONS of doing an include instead.
+  # See https://www.varnish-cache.org/docs/4.0/reference/vmod_std.generated.html#func-fileread
   # Example custom 403 error page.
   # if (resp.status == 403) {
   #   synthetic(std.fileread("/403.html"));
