@@ -218,6 +218,11 @@ sub vcl_recv {
     /* Not cacheable by default */
     return (pass);
   }
+  # Websocket support
+  # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html
+  if (req.http.Upgrade ~ "(?i)websocket") {
+    return (pipe);
+  }
 
   /* 7th: Access control for some URLs by ACL */
   # Empty in simple configs.
@@ -361,6 +366,13 @@ sub vcl_recv {
 # from either client or backend is passed on unaltered until either end closes
 # the connection.
 # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-built-in-subs.html#vcl-pipe
+sub vcl_pipe {
+  # Websocket support
+  # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-example-websockets.html
+  if (req.http.upgrade) {
+    set bereq.http.upgrade = req.http.upgrade;
+  }
+}
 # sub vcl_pipe {
 #     # By default Connection: close is set on all piped requests, to stop
 #     # connection reuse from sending future requests directly to the
