@@ -235,9 +235,11 @@ sub vcl_recv {
     return (pipe);
   }
 
-  /* 9th: Serve from anonymous cahe if all backends are down */
+  /* 9th: Graced objets & Serve from anonymous cahe if all backends are down */
+  # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
+  # set req.http.grace = "none";
   if (! std.healthy(req.backend_hint) ) {
-  #TODO# Consider moving this to vcl_backend_fetch
+    # We must do this here since cookie hashing
     unset req.http.Cookie;
     #TODO# Add sick marker
   } 
@@ -392,18 +394,22 @@ sub vcl_hit {
   }
   /* Allow varnish to serve up stale content if it is responding slowly */
   # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-grace.html
+  # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
   if (obj.ttl + 60s > 0s) {
     // Object is in grace, deliver it
     // Automatically triggers a background fetch
+    set req.http.grace = "normal";
     return (deliver);
   }
   /* Allow varish to serve up stale content if all backends are down */
   # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-grace.html
+  # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
   if ( ! std.healthy(req.backend_hint)
     && obj.ttl + obj.grace > 0s
   ) {
     // Object is in grace, deliver it
     // Automatically triggers a background fetch
+    set req.http.grace = "extended";
     return (deliver);
   }
   /* Bypass built-in logic */
@@ -439,6 +445,8 @@ sub vcl_deliver {
     /* Show the results of cookie sanitization */
     set resp.http.X-Cookie = req.http.Cookie;
   }
+  # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
+  set resp.http.grace = req.http.grace;
 
   #TODO# Add sick marker
 
@@ -590,6 +598,7 @@ sub vcl_backend_response {
 
   /* Enable grace mode. Related with vcl_hit */
   # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-grace.html
+  # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
   set beresp.grace = 1h;
 
   /* Strip cookies from the following static file types for all users. Related with our 12th stage on vcl_recv */
