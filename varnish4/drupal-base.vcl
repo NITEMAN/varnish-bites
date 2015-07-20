@@ -508,6 +508,14 @@ sub vcl_synth {
   /* HTTP Authentification client request */
   # Empty in simple configs. SeeV3 http://blog.tenya.me/blog/2011/12/14/varnish-http-authentication/
 
+  /* Load synthetic responses from disk */
+  #TODO# Ensure that this is only done at boot time and we don't hit disk in-flight
+  # Example custom 403 error page.
+  # if (resp.status == 403) {
+  #   synthetic(std.fileread("/403.html"));
+  #   return(deliver);
+  # }
+
   /* Error page & refresh / redirections */
   # We have plenty of choices when we have to serve an error to the client, 
   # from the default error page to javascript black magic or plain redirections.
@@ -520,12 +528,6 @@ sub vcl_synth {
     set resp.http.Retry-After = "5";
   }
 
-  ## Example custom 403 error page.
-  #if (resp.status == 403) {
-  #  synthetic(std.fileread("/403.html"));
-  #  return(deliver);
-  #}
-  
   # Consider add some analytics stuff to trace accesses
   synthetic( {"<!DOCTYPE html>
 <html>
