@@ -290,7 +290,7 @@ sub vcl_recv {
     }
   }
 
-  /* 11th: Another request manipulation */
+  /* 11th: Further request manipulation */
   # Empty in simple configs.
   # We could add here a custom header grouping User-agent families.
   # Generic URL manipulation.
