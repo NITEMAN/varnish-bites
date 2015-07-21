@@ -229,7 +229,7 @@ sub vcl_recv {
   # See https://www.varnish-cache.org/docs/3.0/reference/varnishd.html?highlight=http_gzip_support
   # See (for older configs) https://www.varnish-cache.org/trac/wiki/VCLExampleNormalizeAcceptEncoding
   if (req.http.Accept-Encoding) {
-    if (req.url ~ "\.(jpg|jpeg|png|gif|gz|tgz|bz2|tbz|mp3|ogg|swf|mp4|flv|zip|rar)$") {
+    if ( req.url ~ "(?i)\.(7z|avi|bz2|flv|gif|gz|jpe?g|mpe?g|mk[av]|mov|mp[34]|og[gm]|pdf|png|rar|swf|tar|tbz|tgz|woff2?|zip|xz)(\?.*)?$"
       /* Already compressed formats, no sense trying to compress again */
       remove req.http.Accept-Encoding;
     }
@@ -243,7 +243,7 @@ sub vcl_recv {
   # Always cache the following static file types for all users. 
   # Use with care if we control certain downloads depending on cookies. 
   # Be carefull also if appending .htm[l] via Drupal's clean URLs.
-  if ( req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|woff2|svg|pdf)(\?(itok=)?[a-z0-9_=\.\-]+)?$"
+  if ( req.url ~ "(?i)\.(bz2|css|eot|gif|gz|html?|ico|jpe?g|js|mp3|ogg|otf|pdf|png|rar|svg|swf|tbz|tgz|ttf|woff2?|zip)(\?(itok=)?[a-z0-9_=\.\-]+)?$"
     && req.url !~ "/system/storage/serve"
   ) {
       unset req.http.Cookie;
@@ -342,7 +342,7 @@ sub vcl_hash {
   # Example for caching diferent object versions by X-Forwarded-Proto, trying to be smart about what kind of request
   # could generate diffetent responses.
   if ( req.http.X-Forwarded-Proto
-    && req.url !~ "(?i)\.(png|gif|jpeg|jpg|ico|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|woff2|svg|pdf)(\?(itok=)?[a-z0-9_=\.\-]+)?$") {
+    && req.url !~ "(?i)\.(bz2|css|eot|gif|gz|html?|ico|jpe?g|js|mp3|ogg|otf|pdf|png|rar|svg|swf|tbz|tgz|ttf|woff2?|zip)(\?(itok=)?[a-z0-9_=\.\-]+)?$"
     hash_data(req.http.X-Forwarded-Proto);
   }
 
@@ -426,7 +426,7 @@ sub vcl_fetch {
   }
 
   /* Strip cookies from the following static file types for all users. Related with our 12th stage on vcl_recv */
-  if (req.url ~ "(?i)\.(png|gif|jpeg|jpg|ico|swf|css|js|html|htm|gz|tgz|bz2|tbz|mp3|ogg|zip|rar|otf|ttf|eot|woff|woff2|svg|pdf)(\?(itok=)?[a-z0-9_=\.\-]+)?$") {
+  if ( req.url ~ "(?i)\.(bz2|css|eot|gif|gz|html?|ico|jpe?g|js|mp3|ogg|otf|pdf|png|rar|svg|swf|tbz|tgz|ttf|woff2?|zip)(\?(itok=)?[a-z0-9_=\.\-]+)?$"
     unset beresp.http.set-cookie;
   }
 
