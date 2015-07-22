@@ -142,7 +142,7 @@ sub vcl_recv {
     && client.ip ~ allowed_monitors
     && ( req.method == "OPTIONS" || req.method == "GET" )
   ) {
-    return (synth(200, "Ban added"));
+    return (synth(200, "OK"));
   }
   # Purge logic
   # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#http-purging
