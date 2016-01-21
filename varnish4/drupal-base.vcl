@@ -105,9 +105,10 @@ acl allowed_monitors {
 # sub perm_redirections_synth {
 #   if ( resp.status == 751 ) {
 #     /* Get new URL from the response */
-#     set resp.http.Location = resp.response;
+#     set resp.http.Location = resp.reason;
 #     /* Set HTTP 301 for permanent redirect */
 #     set resp.status = 301;
+#     set resp.reason = "Moved Permanently";
 #     return (deliver);
 #   }
 # }
@@ -132,7 +133,7 @@ sub vcl_recv {
   # Finally we can perform basic HTTP authentification here, by example.
   # SeeV3 http://blog.tenya.me/blog/2011/12/14/varnish-http-authentication/
 
-  /* 1st: Check for Varnish special requests */ 
+  /* 1st: Check for Varnish special requests */
   # Custom response implementation example in order to check that Varnish is
   # working properly.
   # This is usefull for automatic monitoring with monit or when Varnish is
@@ -273,7 +274,7 @@ sub vcl_recv {
     # We must do this here since cookie hashing
     unset req.http.Cookie;
     #TODO# Add sick marker
-  } 
+  }
 
   /* 10th: Deal with compression and the Accept-Encoding header */
   # Althought Varnish 3 handles gziped content itself by default, just to be
@@ -313,8 +314,8 @@ sub vcl_recv {
   set req.url = std.querysort(req.url);
 
   /* 12th: Cookie removal */
-  # Always cache the following static file types for all users. 
-  # Use with care if we control certain downloads depending on cookies. 
+  # Always cache the following static file types for all users.
+  # Use with care if we control certain downloads depending on cookies.
   # Be carefull also if appending .htm[l] via Drupal's clean URLs.
   if ( req.url ~ "(?i)\.(bz2|css|eot|gif|gz|html?|ico|jpe?g|js|mp3|ogg|otf|pdf|png|rar|svg|swf|tbz|tgz|ttf|woff2?|zip)(\?(itok=)?[a-z0-9_=\.\-]+)?$"
     && req.url !~ "/system/storage/serve"
@@ -412,7 +413,7 @@ sub vcl_pipe {
 #     return (pipe);
 # }
 
-# vcl_pass: Called upon entering pass mode. 
+# vcl_pass: Called upon entering pass mode.
 # In this mode, the request is passed on to the backend, and the backend's
 # response is passed on to the client, but is not entered into the cache.
 # Subsequent requests submitted over the same client connection are handled normally.
@@ -627,7 +628,7 @@ sub vcl_synth {
   # }
 
   /* Error page & refresh / redirections */
-  # We have plenty of choices when we have to serve an error to the client, 
+  # We have plenty of choices when we have to serve an error to the client,
   # from the default error page to javascript black magic or plain redirections.
   # Adding some external statistic javascript to track failures served to
   # clients is strongly suggested.
@@ -874,4 +875,3 @@ sub vcl_backend_error {
 # sub vcl_fini {
 #     return (ok);
 # }
-
