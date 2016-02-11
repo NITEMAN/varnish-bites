@@ -178,13 +178,23 @@ sub vcl_recv {
   # Empty in simple configs.
   # Example remove own_proxys from X-Forwarded-For
   # See https://www.varnish-cache.org/docs/4.0/whats-new/upgrading.html#x-forwarded-for-is-now-set-before-vcl-recv
+  # Varnish 4 regsub doesn't accept anything but plain regexp, so we can't use
+  # client.ip to exclude the proxy ips from the request:
+  #   set req.http.X-Forwarded-For
+  #     = regsub(req.http.X-Forwarded-For, ",( )?" + client.ip, "");
+  # Instead, we need to add the proxy ips manually in the exclude list:
   # if ( req.restarts == 0
   #   && client.ip ~ own_proxys
   #   && req.http.x-forwarded-for
   # ) {
   #   set req.http.X-Forwarded-For
-  #     = regsub(req.http.X-Forwarded-For, ",( )?" + client.ip, "");
+  #     = regsub(req.http.X-Forwarded-For,
+  #         "(, )?(10\.10\.10\.10|10\.11\.11\.11)", "");
   # }
+  # An alternative could be to skip all this and try to modify the header
+  # manually so Varnish doesn't touch it.
+  # set req.http.X-Forwarded-For = req.http.X-Forwarded-For + "";
+  #
   # Example normalize the host header, remove the port (in case you're testing
   # this on various TCP ports)
   # set req.http.Host = regsub(req.http.Host, ":[0-9]+", "");
