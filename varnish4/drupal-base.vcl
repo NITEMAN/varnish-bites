@@ -270,7 +270,9 @@ sub vcl_recv {
     return (pass);
   }
   # Pipe these paths directly to backend for streaming.
-  if ( req.url ~ "^/admin/content/backup_migrate/export" ) {
+  if ( req.url ~ "^/admin/content/backup_migrate/export"
+    || req.url ~ "^/admin/config/system/backup_migrate"
+  ) {
     return (pipe);
   }
   if ( req.url ~ "^/system/files" ) {
