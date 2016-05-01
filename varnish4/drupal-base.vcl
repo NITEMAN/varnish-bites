@@ -296,7 +296,7 @@ sub vcl_recv {
   }
 
   /* 10th: Deal with compression and the Accept-Encoding header */
-  # Althought Varnish 3 handles gziped content itself by default, just to be
+  # Althought Varnish 4 handles gziped content itself by default, just to be
   # sure we want to remove Accept-Encoding for some compressed formats.
   # See https://www.varnish-cache.org/docs/4.0/phk/gzip.html#what-does-http-gzip-support-do
   # See https://www.varnish-cache.org/docs/4.0/users-guide/compression.html
@@ -762,6 +762,12 @@ sub vcl_backend_response {
   #   unset beresp.http.Surrogate-Control;
   #   set beresp.do_esi = true;
   # }
+
+  /* Drupal 8's Big Pipe support */
+  # Tentative support, maybe 'set beresp.ttl = 0s;' is also needed
+  if ( beresp.http.Surrogate-Control ~ "BigPipe/1.0" ) {
+    set beresp.do_stream = true;
+  }
 
   /* Gzip response */
   # Empty in simple configs.

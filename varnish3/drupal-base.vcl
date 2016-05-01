@@ -447,6 +447,12 @@ sub vcl_fetch {
     unset beresp.http.set-cookie;
   }
 
+  /* Drupal 8's Big Pipe support */
+  # Tentative support, maybe 'set beresp.ttl = 0s;' is also needed
+  if ( beresp.http.Surrogate-Control ~ "BigPipe/1.0" ) {
+    set beresp.do_stream = true;
+  }
+
   /* Gzip response */
   # Empty in simple configs
   # Use Varnish to Gzip respone, if suitable, before storing it on cache
