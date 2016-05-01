@@ -160,8 +160,10 @@ sub vcl_recv {
     if ( client.ip !~ purge_ban ) {
       return (synth(405, "Not allowed."));
     }
-    ban( "req.http.host == " + req.http.host +
-      "&& req.url == " + req.url);
+    # Assumes req.url is a regex. This might be a bit too simple
+    ban(  "obj.http.X-Host == " + req.http.host +
+      " && obj.http.X-Url ~ " + req.url
+      );
     return (synth(200, "Ban added"));
   }
 
@@ -530,6 +532,11 @@ sub vcl_hit {
 # vcl_deliver: Called before an object is delivered to the client
 # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-built-in-subs.html#vcl-deliver
 sub vcl_deliver {
+  /* Ban lurker friendly bans support */
+  # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#bans
+  unset beresp.http.X-Host;
+  unset beresp.http.X-Url;
+
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap
   # this with an ACL.
@@ -690,6 +697,11 @@ sub vcl_synth {
 # retrieved from the backend.
 # See https://www.varnish-cache.org/docs/4.0/users-guide/vcl-built-in-subs.html#vcl-backend-response
 sub vcl_backend_response {
+  /* Ban lurker friendly bans support */
+  # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#bans
+  set beresp.http.X-Host = req.http.host;
+  set beresp.http.X-Url = req.url;
+
   /* Caching exceptions */
   # Varnish will cache objects with response codes:
   #   200, 203, 300, 301, 302, 307, 404 & 410.

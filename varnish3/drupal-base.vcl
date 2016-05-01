@@ -113,8 +113,10 @@ sub vcl_recv {
     if (!client.ip ~ purge_ban) {
       error 405 "Not allowed.";
     }
-    ban("req.http.host == " + req.http.host +
-      "&& req.url == " + req.url);    
+    # Assumes req.url is a regex. This might be a bit too simple
+    ban(  "obj.http.X-Host == " + req.http.host +
+      " && obj.http.X-Url ~ " + req.url
+      );
     error 200 "Ban added";
   }
   # Custom response implementation example in order to check that Varnish is working properly.
@@ -402,6 +404,11 @@ sub vcl_miss {
 
 # vcl_fetch: Called after a document has been successfully retrieved from the backend.
 sub vcl_fetch {
+  /* Ban lurker friendly bans support */
+  # See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#bans
+  set beresp.http.X-Host = bereq.http.host;
+  set beresp.http.X-Url = bereq.url;
+
   /* Caching exceptions */
   # Varnish will cache objects with response codes: 200, 203, 300, 301, 302, 307, 404 & 410.
   # See https://www.varnish-software.com/static/book/VCL_Basics.html#the-initial-value-of-beresp-ttl
@@ -510,6 +517,11 @@ sub vcl_fetch {
 
 # vcl_deliver: Called before an object is delivered to the client
 sub vcl_deliver {
+  /* Ban lurker friendly bans support */
+  # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#bans
+  unset beresp.http.X-Host;
+  unset resp.http.X-Url;
+
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap this with an ACL
   # Add whether the object is a cache hit or miss and the number of hits for the object.
