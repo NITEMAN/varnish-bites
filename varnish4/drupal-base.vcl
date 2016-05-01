@@ -1,5 +1,5 @@
 /*
- * Varnish 4 example config for Drupal 7 / Pressflow 6 & 7
+ * Varnish 4 example config for Drupal 7 & 8 / Pressflow 6 & 7
  */
 
 # Original source: https://github.com/NITEMAN/varnish-bites/varnish4/drupal-base.vcl
@@ -160,10 +160,15 @@ sub vcl_recv {
     if ( client.ip !~ purge_ban ) {
       return (synth(405, "Not allowed."));
     }
-    # Assumes req.url is a regex. This might be a bit too simple
-    ban(  "obj.http.X-Host == " + req.http.host +
-      " && obj.http.X-Url ~ " + req.url
-      );
+    if (req.http.Purge-Cache-Tags) {
+      ban("obj.http.Purge-Cache-Tags ~ " + req.http.Purge-Cache-Tags);
+    }
+    else {
+      # Assumes req.url is a regex. This might be a bit too simple
+      ban(  "obj.http.X-Host == " + req.http.host +
+        " && obj.http.X-Url ~ " + req.url
+        );
+    }
     return (synth(200, "Ban added"));
   }
 
@@ -534,8 +539,12 @@ sub vcl_hit {
 sub vcl_deliver {
   /* Ban lurker friendly bans support */
   # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#bans
-  unset beresp.http.X-Host;
-  unset beresp.http.X-Url;
+  unset resp.http.X-Host;
+  unset resp.http.X-Url;
+
+  /* Drupal 8 Purge's module header cleanup */
+  # Purge's headers can become quite big, causing issues in upstream proxies, so we clean it here
+  unset resp.http.Purge-Cache-Tags;
 
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap
