@@ -710,8 +710,8 @@ sub vcl_synth {
 sub vcl_backend_response {
   /* Ban lurker friendly bans support */
   # See https://www.varnish-cache.org/docs/4.0/users-guide/purging.html#bans
-  set beresp.http.X-Host = req.http.host;
-  set beresp.http.X-Url = req.url;
+  set beresp.http.X-Host = bereq.http.host;
+  set beresp.http.X-Url = bereq.url;
 
   /* Caching exceptions */
   # Varnish will cache objects with response codes:

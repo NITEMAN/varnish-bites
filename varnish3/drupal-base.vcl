@@ -413,8 +413,8 @@ sub vcl_miss {
 sub vcl_fetch {
   /* Ban lurker friendly bans support */
   # See https://www.varnish-cache.org/docs/3.0/tutorial/purging.html#bans
-  set beresp.http.X-Host = bereq.http.host;
-  set beresp.http.X-Url = bereq.url;
+  set beresp.http.X-Host = req.http.host;
+  set beresp.http.X-Url = req.url;
 
   /* Caching exceptions */
   # Varnish will cache objects with response codes: 200, 203, 300, 301, 302, 307, 404 & 410.
