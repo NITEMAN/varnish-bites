@@ -566,7 +566,9 @@ sub vcl_deliver {
   } else {
     set resp.http.X-Varnish-Cache = "MISS";
     /* Show the results of cookie sanitization */
-    set resp.http.X-Varnish-Cookie = req.http.Cookie;
+    if ( req.http.Cookie ) {
+      set resp.http.X-Varnish-Cookie = req.http.Cookie;
+    }
   }
   # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
   set resp.http.grace = req.http.grace;

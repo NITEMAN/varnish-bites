@@ -549,7 +549,9 @@ sub vcl_deliver {
   } else {
     set resp.http.X-Varnish-Cache = "MISS";
     /* Show the results of cookie sanitization */
-    set resp.http.X-Varnish-Cookie = req.http.Cookie;
+    if ( req.http.Cookie ) {
+      set resp.http.X-Varnish-Cookie = req.http.Cookie;
+    }
   }
   # TO-DO: Add sick marker
   # Restart count
