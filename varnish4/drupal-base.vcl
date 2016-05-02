@@ -290,7 +290,7 @@ sub vcl_recv {
 
   /* 9th: Graced objets & Serve from anonymous cahe if all backends are down */
   # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
-  # set req.http.grace = "none";
+  # set req.http.X-Varnish-Grace = "none";
   if ( ! std.healthy(req.backend_hint) ) {
     # We must do this here since cookie hashing
     unset req.http.Cookie;
@@ -506,7 +506,7 @@ sub vcl_hit {
   if ( obj.ttl + 60s > 0s ) {
     // Object is in grace, deliver it
     // Automatically triggers a background fetch
-    set req.http.grace = "normal";
+    set req.http.X-Varnish-Grace = "normal";
     return (deliver);
   }
   /* Allow varish to serve up stale content if all backends are down */
@@ -517,7 +517,7 @@ sub vcl_hit {
   ) {
     // Object is in grace, deliver it
     // Automatically triggers a background fetch
-    set req.http.grace = "extended";
+    set req.http.X-Varnish-Grace = "extended";
     return (deliver);
   }
   /* Bypass built-in logic */
@@ -571,7 +571,9 @@ sub vcl_deliver {
     }
   }
   # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
-  set resp.http.grace = req.http.grace;
+  if ( req.http.X-Varnish-Grace ) {
+    set resp.http.X-Varnish-Grace = req.http.X-Varnish-Grace;
+  }
 
   #TODO# Add sick marker
 
