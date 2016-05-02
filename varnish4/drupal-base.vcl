@@ -777,12 +777,12 @@ sub vcl_backend_response {
   # See https://www.varnish-cache.org/docs/4.0/users-guide/compression.html
   # See https://www.varnish-cache.org/docs/4.0/phk/gzip.html
   if ( ! beresp.http.Content-Encoding
-    && ( beresp.http.content-type ~ "text"
-      || beresp.http.content-type ~ "application/x-javascript"
-      || beresp.http.content-type ~ "application/javascript"
-      || beresp.http.content-type ~ "application/rss+xml"
-      || beresp.http.content-type ~ "application/xml"
-      || beresp.http.content-type ~ "Application/JSON")
+    && ( beresp.http.content-type ~ "(?i)text"
+      || beresp.http.content-type ~ "(?i)application/x-javascript"
+      || beresp.http.content-type ~ "(?i)application/javascript"
+      || beresp.http.content-type ~ "(?i)application/rss+xml"
+      || beresp.http.content-type ~ "(?i)application/xml"
+      || beresp.http.content-type ~ "(?i)Application/JSON")
   ) {
     set beresp.do_gzip = true;
   }

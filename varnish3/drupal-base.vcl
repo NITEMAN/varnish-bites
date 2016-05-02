@@ -460,13 +460,13 @@ sub vcl_fetch {
   # Use Varnish to Gzip respone, if suitable, before storing it on cache
   # See https://www.varnish-cache.org/docs/3.0/tutorial/compression.html
   # See https://www.varnish-cache.org/docs/3.0/phk/gzip.html
-  if (! beresp.http.Content-Encoding &&
-      (beresp.http.content-type ~ "text" ||
-       beresp.http.content-type ~ "application/x-javascript" ||
-       beresp.http.content-type ~ "application/javascript" ||
-       beresp.http.content-type ~ "application/rss+xml" ||
-       beresp.http.content-type ~ "application/xml" ||
-       beresp.http.content-type ~ "Application/JSON")
+  if ( ! beresp.http.Content-Encoding
+    && ( beresp.http.content-type ~ "(?i)text"
+      || beresp.http.content-type ~ "(?i)application/x-javascript"
+      || beresp.http.content-type ~ "(?i)application/javascript"
+      || beresp.http.content-type ~ "(?i)application/rss+xml"
+      || beresp.http.content-type ~ "(?i)application/xml"
+      || beresp.http.content-type ~ "(?i)Application/JSON")
   ) {
     set beresp.do_gzip = true;
     if ( beresp.http.Vary ) {
