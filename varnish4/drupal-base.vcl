@@ -194,7 +194,7 @@ sub vcl_recv {
   # Instead, we need to add the proxy ips manually in the exclude list:
   # if ( req.restarts == 0
   #   && client.ip ~ own_proxys
-  #   && req.http.x-forwarded-for
+  #   && req.http.X-Forwarded-For
   # ) {
   #   set req.http.X-Forwarded-For
   #     = regsub(req.http.X-Forwarded-For,
@@ -557,16 +557,16 @@ sub vcl_deliver {
   # In Varnish 4 the obj.hits counter behaviour has changed (see bug 1492), so
   # we use a different method: if X-Varnish contains only 1 id, we have a miss,
   # if it contains more (and therefore a space), we have a hit.
-  if ( resp.http.x-varnish ~ " " ) {
-    set resp.http.X-Cache = "HIT";
+  if ( resp.http.X-Varnish ~ " " ) {
+    set resp.http.X-Varnish-Cache = "HIT";
     # Since in Varnish 4 the behaviour of obj.hits changed, this might not be
     # accurate.
     # See https://www.varnish-cache.org/trac/ticket/1492
-    set resp.http.X-Cache-Hits = obj.hits;
+    set resp.http.X-Varnish-Cache-Hits = obj.hits;
   } else {
-    set resp.http.X-Cache = "MISS";
+    set resp.http.X-Varnish-Cache = "MISS";
     /* Show the results of cookie sanitization */
-    set resp.http.X-Cookie = req.http.Cookie;
+    set resp.http.X-Varnish-Cookie = req.http.Cookie;
   }
   # See https://www.varnish-software.com/blog/grace-varnish-4-stale-while-revalidate-semantics-varnish
   set resp.http.grace = req.http.grace;
@@ -575,7 +575,7 @@ sub vcl_deliver {
 
   # Restart count
   if ( req.restarts > 0 ) {
-    set resp.http.X-Restarts = req.restarts;
+    set resp.http.X-Varnish-Restarts = req.restarts;
   }
 
   # Add the Varnish server hostname
@@ -791,12 +791,12 @@ sub vcl_backend_response {
   # Please consider the risks of showing publicly this information, we can wrap
   # this with an ACL.
   # We can add the name of the backend that has processed the request:
-  # set beresp.http.X-Backend = beresp.backend.name;
+  # set beresp.http.X-Varnish-Backend = beresp.backend.name;
   # We can use a header to tell if the object was gziped by Varnish:
   # if ( beresp.do_gzip ) {
   #   set beresp.http.X-Varnish-Gzipped = "yes";
   # } else {
-  #   set beresp.http.X-Varnish-Gizipped = "no";
+  #   set beresp.http.X-Varnish-Gzipped = "no";
   # }
   # We can do the same to tell if Varnish is streaming it:
   # if ( beresp.do_stream ) {
@@ -808,19 +808,19 @@ sub vcl_backend_response {
   # SeeV3 https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Varnish3.0
   if ( beresp.ttl <= 0s ) {
     /* Varnish determined the object was not cacheable */
-    set beresp.http.X-Cacheable = "NO:Not Cacheable";
+    set beresp.http.X-Varnish-Cacheable = "NO:Not Cacheable";
   } elsif ( bereq.http.Cookie ~ "(SESS|SSESS|NO_CACHE|OATMEAL|CHOCOLATECHIP)" ) {
     /* We don't wish to cache content for logged in users or with certain cookies. */
     # Related with our 9th stage on vcl_recv
-    set beresp.http.X-Cacheable = "NO:Cookies";
+    set beresp.http.X-Varnish-Cacheable = "NO:Cookies";
     # set beresp.uncacheable = true;
   } elsif ( beresp.http.Cache-Control ~ "private" ) {
     /* We are respecting the Cache-Control=private header from the backend */
-    set beresp.http.X-Cacheable = "NO:Cache-Control=private";
+    set beresp.http.X-Varnish-Cacheable = "NO:Cache-Control=private";
     # set beresp.uncacheable = true;
   } else {
     /* Varnish determined the object was cacheable */
-    set beresp.http.X-Cacheable = "YES";
+    set beresp.http.X-Varnish-Cacheable = "YES";
   }
 
   /* Further header manipulation */
@@ -831,7 +831,7 @@ sub vcl_backend_response {
   # unset beresp.http.X-Powered-By;
   # Retry count.
   if ( bereq.retries > 0 ) {
-    set beresp.http.X-Retries = bereq.retries;
+    set beresp.http.X-Varnish-Retries = bereq.retries;
   }
 
   /* Continue with built-in logic */
@@ -869,7 +869,7 @@ sub vcl_backend_error {
   # this with an ACL.
   # Retry count
   if ( bereq.retries > 0 ) {
-    set beresp.http.X-Retries = bereq.retries;
+    set beresp.http.X-Varnish-Retries = bereq.retries;
   }
 
   set beresp.http.Content-Type = "text/html; charset=utf-8";

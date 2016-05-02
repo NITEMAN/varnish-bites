@@ -148,7 +148,7 @@ sub vcl_recv {
   if ( req.restarts == 0 ) {
     /* See also vcl_pipe section */
     if ( ! client.ip ~ own_proxys ) {
-      if ( req.http.x-forwarded-for ) {
+      if ( req.http.X-Forwarded-For ) {
         set req.http.X-Forwarded-For = req.http.X-Forwarded-For + ", " + client.ip;
       } else {
         set req.http.X-Forwarded-For = client.ip;
@@ -481,29 +481,29 @@ sub vcl_fetch {
   /* Debugging headers */
   # Please consider the risks of showing publicly this information, we can wrap this with an ACL
   # We can add the name of the backend that has processed the request:
-  # set beresp.http.X-Backend = beresp.backend.name;
+  # set beresp.http.X-Varnish-Backend = beresp.backend.name;
   # We can use a header to tell if the object was gziped by Varnish
   # if (beresp.do_gzip) {
   #   set beresp.http.X-Varnish-Gzipped = "yes";
   # } else {
-  #   set beresp.http.X-Varnish-Gizipped = "no";
+  #   set beresp.http.X-Varnish-Gzipped = "no";
   # }
   # We can also add headers informing whether the object is cacheable or not and why.
   # https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Varnish3.0
   if (beresp.ttl <= 0s) {
     /* Varnish determined the object was not cacheable */
-    set beresp.http.X-Cacheable = "NO:Not Cacheable";
+    set beresp.http.X-Varnish-Cacheable = "NO:Not Cacheable";
   } elsif (req.http.Cookie ~ "(SESS|SSESS|NO_CACHE|OATMEAL|CHOCOLATECHIP)") {
     /* We don't wish to cache content for logged in users or with certain cookies. Related with our 9th stage on vcl_recv */
-    set beresp.http.X-Cacheable = "NO:Cookies";
+    set beresp.http.X-Varnish-Cacheable = "NO:Cookies";
     # return(hit_for_pass);
   } elsif (beresp.http.Cache-Control ~ "private") {
     /* We are respecting the Cache-Control=private header from the backend */
-    set beresp.http.X-Cacheable = "NO:Cache-Control=private";
+    set beresp.http.X-Varnish-Cacheable = "NO:Cache-Control=private";
     # return(hit_for_pass);
   } else {
     /* Varnish determined the object was cacheable */
-    set beresp.http.X-Cacheable = "YES";
+    set beresp.http.X-Varnish-Cacheable = "YES";
   }
 
   /* Further header manipulation */
@@ -544,17 +544,17 @@ sub vcl_deliver {
   # Add whether the object is a cache hit or miss and the number of hits for the object.
   # https://www.varnish-cache.org/trac/wiki/VCLExampleHitMissHeader#Addingaheaderindicatinghitmiss
   if (obj.hits > 0) {
-    set resp.http.X-Cache = "HIT";
-    set resp.http.X-Cache-Hits = obj.hits;
+    set resp.http.X-Varnish-Cache = "HIT";
+    set resp.http.X-Varnish-Cache-Hits = obj.hits;
   } else {
-    set resp.http.X-Cache = "MISS";
+    set resp.http.X-Varnish-Cache = "MISS";
     /* Show the results of cookie sanitization */
-    set resp.http.X-Cookie = req.http.Cookie;
+    set resp.http.X-Varnish-Cookie = req.http.Cookie;
   }
   # TO-DO: Add sick marker
   # Restart count
   if ( req.restarts > 0) {
-    set resp.http.X-Restarts = req.restarts;
+    set resp.http.X-Varnish-Restarts = req.restarts;
   }
   # Add the Varnish server hostname
   set resp.http.X-Varnish-Server = server.hostname;
@@ -610,7 +610,7 @@ sub vcl_error {
   # Note that max_restarts defaults to 4
   # See https://www.varnish-cache.org/trac/wiki/VCLExampleRestarts
   if (obj.status == 503 && req.restarts < 4) {
-    set obj.http.X-Restarts = req.restarts;
+    set obj.http.X-Varnish-Restarts = req.restarts;
     return(restart);
   }
 
