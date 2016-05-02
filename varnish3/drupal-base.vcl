@@ -114,7 +114,9 @@ sub vcl_recv {
       error 405 "Not allowed.";
     }
     if (req.http.Purge-Cache-Tags) {
-      ban("obj.http.Purge-Cache-Tags ~ " + req.http.Purge-Cache-Tags);
+      ban(  "obj.http.X-Host == " + req.http.host +
+        " && obj.http.Purge-Cache-Tags ~ " + req.http.Purge-Cache-Tags
+        );
     }
     else {
       # Assumes req.url is a regex. This might be a bit too simple
