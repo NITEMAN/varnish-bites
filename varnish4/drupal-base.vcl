@@ -363,7 +363,7 @@ sub vcl_recv {
     set req.http.Cookie
       = regsuball(
           req.http.Cookie,
-          ";(S{1,2}ESS[a-z0-9]+|NO_CACHE|OATMEAL|CHOCOLATECHIP)=",
+          ";(S{1,2}ESS[a-z0-9]+|NO_CACHE|OATMEAL|CHOCOLATECHIP|big_pipe_nojs)=",
           "; \1="
         );
     # Remove from the header any single Cookie not prefixed with a space until
