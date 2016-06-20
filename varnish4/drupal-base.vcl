@@ -769,12 +769,6 @@ sub vcl_backend_response {
   #   set beresp.do_esi = true;
   # }
 
-  /* Drupal 8's Big Pipe support */
-  # Tentative support, maybe 'set beresp.ttl = 0s;' is also needed
-  if ( beresp.http.Surrogate-Control ~ "BigPipe/1.0" ) {
-    set beresp.do_stream = true;
-  }
-
   /* Gzip response */
   # Empty in simple configs.
   # Use Varnish to Gzip respone, if suitable, before storing it on cache.
@@ -789,6 +783,14 @@ sub vcl_backend_response {
       || beresp.http.content-type ~ "(?i)Application/JSON")
   ) {
     set beresp.do_gzip = true;
+  }
+
+  /* Drupal 8's Big Pipe support */
+  # Tentative support, maybe 'set beresp.ttl = 0s;' is also needed
+  if ( beresp.http.Surrogate-Control ~ "BigPipe/1.0" ) {
+    set beresp.do_stream = true;
+    # Varnish gzipping breaks streaming of the first response
+    set beresp.do_gzip = false;
   }
 
   /* Debugging headers */
